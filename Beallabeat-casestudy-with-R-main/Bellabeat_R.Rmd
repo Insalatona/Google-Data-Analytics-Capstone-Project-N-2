@@ -1,0 +1,325 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+
+
+
+```{r}
+install.packages(c("janitor", "tidyverse", "ggplot2", "cowplot", "ggcorrplot"))
+```
+
+
+```{r}
+#Uploading the packages used to analyse and visualize the data.
+
+library(readr)
+library(dplyr)
+library(here)
+library(skimr)
+library(janitor)
+library(tidyverse)
+library(ggplot2)
+library(cowplot)
+library(ggcorrplot)
+```
+
+
+```{r #installare dataset per kaggle} 
+daily_activity <- read_csv("../input/fitbit/Fitabase Data 4.12.16-5.12.16/dailyActivity_merged.csv")
+heartrate_seconds <- read_csv("../input/fitbit/Fitabase Data 4.12.16-5.12.16/heartrate_seconds_merged.csv")
+sleep_day <- read_csv("../input/fitbit/Fitabase Data 4.12.16-5.12.16/sleepDay_merged.csv")
+```
+
+```{r #installare dataset per R locale}
+daily_activity <- read_csv("dailyActivity_merged.csv")
+heartrate_seconds <- read.csv("heartrate_seconds_merged.csv")
+sleep_day <- read.csv("sleepDay_merged.csv")
+```
+
+
+```{r}
+daily_activity <- rename_with(daily_activity, tolower)
+heartrate_seconds <- rename_with(heartrate_seconds, tolower)
+sleep_day <- rename_with(sleep_day, tolower)
+
+
+daily_activity <- daily_activity %>% 
+  drop_na() %>% 
+  mutate(activitydate = as.Date(activitydate, format = "%m/%d/%Y"))
+
+
+concise_heartrate <- heartrate_seconds %>%
+  drop_na() %>% 
+  separate(time , c("day","time","AM/PM")," ") %>% 
+  mutate(day = as.Date(day, format = "%m/%d/%Y"))%>% 
+  group_by(id, day) %>% 
+  summarize(avg_heartrate = mean(value))
+
+
+good_sleep <- filter(sleep_day, totalminutesasleep >= 420 & totalminutesasleep <= 540) %>% 
+  drop_na() %>% 
+  separate(sleepday , c("day","time","AM/PM")," ") %>% 
+  mutate(day = as.Date(day, format = "%m/%d/%Y"))
+
+bad_sleep <- filter(sleep_day,totalminutesasleep <= 420 | totalminutesasleep >= 540) %>% 
+  drop_na() %>% 
+  separate(sleepday , c("day","time","AM/PM")," ") %>% 
+  mutate(day = as.Date(day, format = "%m/%d/%Y"))
+```
+
+
+
+```{r}
+heartSum_goodsleep <- merge(concise_heartrate, good_sleep)
+heartSum_badsleep <- merge(concise_heartrate, bad_sleep)
+activity_heartrate <-  merge(rename(daily_activity, day = activitydate), concise_heartrate)
+```
+
+```{r}
+head(daily_activity)
+head(heartrate_seconds)
+head(sleep_day)
+head(concise_heartrate)
+
+head(heartSum_goodsleep)
+head(heartSum_badsleep)
+head(activity_heartrate)
+```
+
+```{r}
+corr = daily_activity %>% summarize(cor(totalsteps, calories))
+corr = as.data.frame(corr)
+colnames(corr)[1]  = "Corr"
+
+ggplot(data = daily_activity) + 
+  geom_point(mapping = aes(x = totalsteps, y = calories, color = calories)) +
+  scale_color_gradient(low = "red", high = "yellow")+
+  geom_smooth(mapping = aes(x =totalsteps, y = calories), method = "loess", formula = "y ~ x")+
+  theme_light()+
+  ggtitle("Total Steps vs. Calories Burned") +
+  xlab("Total Steps")+
+  ylab("Calories")+
+  annotate("text", x = 30000, y = 0, label =round(corr[1,1, drop = FALSE], digits = 2))
+```
+
+```{r}
+ggplot(data = daily_activity) + geom_point(mapping = aes(x = veryactiveminutes, y = calories, color = calories)) +
+     scale_color_gradient(low = "red", high = "yellow")+
+     geom_smooth(mapping = aes(x = veryactiveminutes, y = calories), method = "loess", formula = y ~ x, color = "blue") + 
+     theme_light() +
+     xlim(0, 150)+
+     ggtitle("Calories vs. Very Active Minutes") +
+     xlab("Very Active Minutes")+
+     ylab("Calories")
+
+ggplot(data = daily_activity) + geom_point(mapping = aes(x = fairlyactiveminutes, y = calories, color = calories)) +
+     scale_color_gradient(low = "red", high = "yellow")+
+     geom_smooth(mapping = aes(x = fairlyactiveminutes, y = calories), method = "loess", formula = y ~ x, color = "blue") + 
+     theme_light() + 
+     xlim(0, 150)+
+     ggtitle("Calories vs. Fairly Active Minutes" )+
+     xlab("Fairly Active Minutes")+
+     ylab("Calories")
+     
+ggplot(data = daily_activity) + geom_point(mapping = aes(x = lightlyactiveminutes, y = calories, color = calories)) +
+     scale_color_gradient(low = "red", high = "yellow")+
+     geom_smooth(mapping = aes(x = lightlyactiveminutes, y = calories), method = "loess", formula = y ~ x, color = "blue") + 
+     theme_light()+
+     ggtitle("Calories vs. Lightly Active Minutes") +
+     xlab("Lightly Active Minutes")+
+     ylab("Calories")
+```
+
+```{r}
+H_g <- ggplot(data = heartSum_goodsleep) + 
+  geom_point(mapping = aes(x =totalminutesasleep , y =avg_heartrate, color = avg_heartrate ))+ 
+  scale_color_gradient(low = "red", high = "yellow")+
+  geom_smooth(mapping = aes(x =totalminutesasleep , y =avg_heartrate ), method = "loess", formula = y ~ x, color = "blue") + 
+  theme_light() +
+  ylim(50, 100)+
+  ggtitle("Healthy amount of sleep: 420 - 520 Min.") +
+     xlab("Total Minutes Asleep")+
+     ylab("Avg Heartrate (bpm)")
+
+H_b <- ggplot(data = heartSum_badsleep) + 
+  geom_point(mapping = aes(x =totalminutesasleep , y =avg_heartrate , color = avg_heartrate)) +
+  scale_color_gradient(low = "red", high = "yellow")+
+  geom_smooth(mapping = aes(x =totalminutesasleep , y =avg_heartrate ), method = "loess", formula = y ~ x, color = "blue") + 
+  theme_light() +
+  ylim(50, 100) +
+  ggtitle("Unhealthy amount of sleep: More / Less than 420 - 520 Min.") +
+     xlab("Total Minutes Asleep")+
+     ylab("Avg Heartrate (bpm)")
+
+
+plot_grid(H_g,H_b, ncol = 1)
+```
+
+```{r}
+gsleep_box <- ggplot(data = heartSum_goodsleep) +
+  geom_boxplot(mapping = aes(x =  totalminutesasleep, y = avg_heartrate),fill = "light blue", color = "black", notch = "TRUE", outlier.colour = "black")+
+  ylim(60,110)+
+  theme_minimal()+
+  ggtitle("Good amount of sleep")+
+     xlab("Total Minutes Asleep")+
+     ylab("Avg Heartrate (bpm)")
+
+bsleep_box <- ggplot(data = heartSum_badsleep) +
+  geom_boxplot(mapping = aes(x = totalminutesasleep, y =  avg_heartrate),fill = "azure", color = "black", notch = "TRUE", outlier.colour = "black")+
+  ylim(60,110)+
+  theme_minimal()+
+  ggtitle("Bad amount of sleep")+
+     xlab("Total Minutes Asleep")+
+     ylab("Avg Heartrate (bpm)")
+
+plot_grid(gsleep_box, bsleep_box, ncol = 2)
+```
+
+```{r}
+ggplot(data = activity_heartrate) +
+  geom_point(mapping = aes(x = avg_heartrate, y = sedentaryminutes, color = sedentaryminutes))+
+  scale_color_gradient(low = "red", high = "yellow")+
+  geom_smooth(mapping = aes(x = avg_heartrate, y = sedentaryminutes), method = "loess", formula = y ~ x,)+
+  ggtitle("Average Heart Rate vs. Sedentary Minutes")+
+     xlab("Avg Heartrate (bpm)")+
+     ylab("Sedentary Minutes")
+```
+
+```{r}
+cls = kmeans(x = activity_heartrate[c("sedentaryminutes", "avg_heartrate")], centers = 2)
+             
+activity_cluster <- activity_heartrate
+activity_cluster$cluster <- as.character(cls$cluster)
+
+centersVec <- (cls[["centers"]])
+centers <- as.data.frame(centersVec)
+
+ggplot(data = activity_heartrate) +
+  geom_histogram(mapping = aes(x = sedentaryminutes), binwidth = 35, fill = "lightblue")+
+  geom_point(data = activity_cluster, mapping = aes(x = sedentaryminutes, y = avg_heartrate, colour = cluster))+
+  geom_point(centers, mapping = aes(x = sedentaryminutes, y = avg_heartrate), color = "yellow", size = 2)+
+  geom_text(centers, mapping = aes(x = sedentaryminutes, y = avg_heartrate, label = 1:2), color = "black", size = 2)+
+  ggtitle("Sedentary Minutes Clusters")+
+  theme_light()+
+  theme(legend.position = "none") +
+     xlab("Avg Heartrate (bpm)")+
+     ylab("Sedentary Minutes")+
+     ggtitle("Sedentary Minutes Distribution")+
+     xlab("Sedentary Minutes")
+```
+
+```{r piechart}
+w <- (nrow(na.omit(bad_sleep)))
+v <- (nrow(na.omit(good_sleep)))
+
+
+pie <- data.frame(category = c("Good Sleep Occurrences", "Bad sleep Occurrences"),
+                  count = c(w, v))
+pie$fraction <-  pie$count / sum(pie$count)
+pie$ymax <-  cumsum(pie$fraction)
+pie$ymin <-  c(0, head(pie$ymax, n=-1))
+pie$labelPosition <- (pie$ymax + pie$ymin) / 2
+pie$label <- paste0(pie$category, "\n value: ", pie$count,"\n","(", round(pie$fraction*100, digits = 0),"%)")
+
+
+
+
+#creo il grafico
+ggplot(pie, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=category)) +
+     geom_rect() +
+     coord_polar(theta="y") + 
+     xlim(c(2, 4))+
+     geom_label( x=3.5, aes(y=labelPosition, label=label), size=2) +
+     scale_fill_brewer(palette=1) +
+     theme_void()+
+     theme(legend.position = "none")
+
+
+```
+
+```{r barchart lazy day}
+  #transformo le date in giorni della settimana
+daily_activity$weekday <-  weekdays(daily_activity$activitydate)
+  #ritaglio i le variabili che mi interessano
+forStand_daily_activity <-  daily_activity[c("sedentaryminutes", "veryactiveminutes", "weekday")]
+  
+  #calcolo la deviazione standard per ogni row
+standardized_daily <- forStand_daily_activity %>% mutate_at(c("sedentaryminutes", "veryactiveminutes"), ~(scale(.) %>% as.vector)) %>% group_by(weekday)
+
+
+
+#making 2 datasets with the standardized mean of the weekday of the corrispecting variable
+weekday_sed <- standardized_daily[c("sedentaryminutes", "weekday")] %>%
+	group_by(weekday) %>%
+	summarise(sedentarySD = mean(sedentaryminutes))
+
+weekday_ver <- standardized_daily[c("veryactiveminutes", "weekday")] %>%
+	group_by(weekday) %>%
+	summarise(veryactiveSD = mean(veryactiveminutes))
+
+#unisco i dataset
+c <- merge.data.frame(weekday_sed, weekday_ver)
+  #riordino i grioni della settimna
+c$weekday <- factor(c$weekday, levels= c("lunedì", "martedì", 
+    "mercoledì", "giovedì", "venerdì", "sabato", "domenica"))
+c <- c[order(c$weekday), ]
+  #changing the data shape so there are 2 groups "sedentaryst" and veryactivest" 
+c1 <- reshape2::melt(c, id.vars = "weekday")
+
+
+
+#making the bar plot
+ggplot(c1, aes(weekday, value, fill = variable)) +
+  geom_col(position = "dodge")+
+  scale_fill_brewer(palette=1)+
+  theme_minimal()
+```
+
+
+```{r}
+ggplot(c)+
+  geom_bar(aes(x= sedentaryst, y=weekday), stat= "identity" , position="dodge")+
+  geom_bar(aes(x= veryactivest, y=weekday), stat= "identity" , position="dodge")
+
+
+zz <- "Site TreesSDI InvertebratesSDI PlantsSDI BirdsSDI
+1     1.31      2.48           1.35      1.84
+2     1.46      2.80           1.61      2.05
+3     1.78      2.50           2.29      2.40"
+
+df <- read.table(text = zz, header = T)
+df1 <- reshape2::melt(df, id.vars = "Site")
+
+c1 <- reshape2::melt(c, id.vars = "weekday")
+
+ggplot(c1, aes(weekday, value, fill = variable)) +
+  geom_col(position = "dodge")
+```
+
+
+
+
+
+
+
+
+
+
+
+
