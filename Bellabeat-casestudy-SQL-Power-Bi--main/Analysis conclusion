@@ -1,0 +1,56 @@
+Google's capstone project n°2: Bellabeat's marketing strategy, made with the tools PowerBI and Google Bigquery online sandbox.
+DISCLAIMER: Due to the free trial nature of the Bigquery sandbox there may be some problem in the future with the dataset since they will last for only 60 days.
+
+CONCLUSION OF THE PROJECT:
+
+1) With the analysis we can conclude that:
+
+The subject to stay healthy and loose calories has to walk and stay active as much as it can.
+The best way to stay healthy is to have an intense session of activity even if it is for a shorter period of time rather than a lower intensity session but for a shorter period of time.
+It is advised to sleep within 7-9 hours daily otherwise there may be some slight heart complication such as low heartrate.
+It is also advised to not be sedentary too much as it can couse heart problems.
+It appears there are 2 distinct groups with different daily habits: the first with a healthier way of life, with a lower sedentary life and the second, with a lazier way of life.
+There are some days more than others where motivation to stay active is really low.
+
+
+
+2) Bellabeat's marketing strategy:
+
+First of all Bellabeat should be more involved in a better data collection ecosystem, the data has a lot of flaws, it is somewhat superficial,
+it was just enough to scrape the surface of the problems but it can't be used to find the root cause, the subjects who had their data collected are few,
+and the time period covered by the data I think it is insufficient to discovered more serious health complications.
+
+As to why so little people wanted to share data to Bellabeat i can not respond since the data given where not relevant to this question, 
+but maybe Bellabeat is not trusted whith personal data, maybe people are too embarassed to share it, maybe they just don't want too as they think it is a waste of time.
+Bellabeat has to do something about it, the firm can possibly reward the users that share the data, with products that can incentivise daily activity or application that 
+can show them the subjects progress, or better their data collection / data storing to increase trust in the clients ecc...
+
+With regards to the "Leaf" product should inform the client of growing bad habits, and show what an ideal day of activities should be, 
+and how an ideal night of rest should be planned. So the user should be notified of:
+
+-a bad sleep schedule: it is important to sleep 7-9 hours per day
+-a daily activity routine: even a small amount of intense exercise should be enough to put the patient in shape
+-too much sedentary life: the user should be somewhat active throughout the day, it is okay to be tired or a little lazy for part of the day but it is 
+crucial not to overdo it and step in an unhealthy lifestyle
+-Days where motivation is at its lowest
+
+Once this trends are picked up by the "Leaf" product, the application should incentivise the client to fix possible unhealthy habits.
+Possibles strategies to inspire customers to be more active could be:
+
+-Activity points and in-app rewards: The more a client stays active the more it will earn points which could be spendable in the app;
+the rewards could vary, maybe a new app style, maybe an avatar to differencieate the clients from the other, maybe items for these avatars to characterize 
+the client even further or maybe real life items such as gyms artnered with Bellabeat or other sport related brands.
+
+-Since the product is mainly used by females users the marketing team could analyze better what kind of interactions and/or rewards this specific client group wants from the app.
+
+-Make competitions: Creating a leaderboard with all the users that consent to publicly compete in various areas, like calories loss, steps taken, minutes of activity, ecc...
+The competitions could start with a smaller area and grow bigger and bigger as the customer wins, and as it wins it could earn badges or even items that
+share the results of the client work and achievements to other application users or friends and family through social media.
+
+I think that if applied correctly these marketing strategies will benefit both the customers, giving them a healthier body and lifestyle,
+while also benefitting Bellabeat as a company, creating a genuine and organic word of mouth, strenghtening the relationship between Bellabeat and its customers
+and increasing the firm reputation and trust (which Bellabeat could defenitly benefit as shown by the quality of data collected).
+
+User generated content is the key for a good image, trust and uniqueness for a company that sells such personal products like Bellabeat and since 
+the firm already has a solid reputation for quality and beatiful products I think it should go all out and create way more ways so that the customers
+can express themself through Bellabeat's products.
