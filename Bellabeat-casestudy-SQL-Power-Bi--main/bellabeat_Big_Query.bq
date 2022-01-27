@@ -1,0 +1,140 @@
+--DAILY ACTIVITY
+--    #cambio il nome di Activity date, creo una colonna con i nomi weekdays, creo una colonna con i numeri dei weekdays,
+--creo 2 colonne con i dati standardizzati di Sedentaryminutes e VeryyActiveMinutes'''
+CREATE TABLE `bellabeat-marketing-strategy.Fitabase_data.daily_activity` AS (
+SELECT                                                                            
+    id,                                                                           
+    ActivityDate AS date,
+    FORMAT_DATE('%A', ActivityDate) AS weekday,
+    EXTRACT(DAYOFWEEK
+    FROM ActivityDate) AS numberofweek,
+    * EXCEPT (id, ActivityDate),
+    ((SedentaryMinutes - AVG(SedentaryMinutes) OVER ()) / NULLIF(STDDEV_POP(SedentaryMinutes) OVER (), 0)) AS sedMinNorm,
+    ((VeryActiveMinutes - AVG(VeryActiveMinutes) OVER ()) / NULLIF(STDDEV_POP(VeryActiveMinutes) OVER (), 0)) AS veryActiveNorm
+FROM `bellabeat-marketing-strategy.Fitabase_data.dailyActivity`
+ORDER BY id, date);
+
+
+
+
+
+--HEARTRATE DATE
+--#Selezionare e dividere le rige con data
+CREATE TABLE `bellabeat-marketing-strategy.Fitabase_data.heartrate_date` AS (
+SELECT 
+    id,
+        #parse date mi trasforma le date scomposte da formato stringa a formato DATE
+            #split mi divide la stringa in varie parti separate da ' ', scelgo la 1
+    PARSE_DATE('%m/%d/%Y', (split(time, ' '))[safe_ordinal(1)]) as date,
+    value
+FROM `bellabeat-marketing-strategy.Fitabase_data.heartrate_seconds`);
+
+
+
+
+
+
+--SLEEPDAY
+CREATE TABLE `bellabeat-marketing-strategy.Fitabase_data.sleepDay_date` AS (
+SELECT 
+    id,
+        #parse date mi trasforma le date scomposte da formato stringa a formato DATE
+            #split mi divide la stringa in varie parti separate da ' ', scelgo la 1
+    PARSE_DATE('%m/%d/%Y', (split(sleepday, ' '))[safe_ordinal(1)]) as date,
+    totalsleeprecords,
+    totalminutesasleep,
+    totaltimeinbed
+FROM `bellabeat-marketing-strategy.Fitabase_data.sleep_day`);
+
+
+
+
+
+
+--#CONCISE HEARTRATE
+--#calcolo la media giornaliera di value per ogni id
+CREATE TABLE `bellabeat-marketing-strategy.Fitabase_data.concise_heartrate` AS (
+SELECT
+    id,
+    date,
+    avg(value) as value
+FROM `bellabeat-marketing-strategy.Fitabase_data.heartrate_date`
+GROUP BY
+    id,
+    date
+ORDER BY id);
+
+
+
+
+
+
+--#MERGING DATASETS
+
+--#ACTIVITY HEARTRATE
+CREATE TABLE `bellabeat-marketing-strategy.Fitabase_data.activity_heartrate` AS (
+SELECT
+    daily_activity.id,
+    daily_activity.date,
+    value,
+    * EXCEPT(id , date, value)
+FROM `bellabeat-marketing-strategy.Fitabase_data.daily_activity` AS daily_activity
+INNER JOIN 
+    `bellabeat-marketing-strategy.Fitabase_data.concise_heartrate` AS concise_heartrate
+    ON concise_heartrate.id = daily_activity.id
+    AND concise_heartrate.date = daily_activity.date
+ORDER BY 1, 2);
+
+
+
+
+--#HEART_GOODSLEEP
+CREATE TABLE `bellabeat-marketing-strategy.Fitabase_data.heart_goodsleep` AS (
+SELECT 
+    sleep_day.id,
+    sleep_day.date,
+    value,
+    * EXCEPT(id, date, value)
+FROM `bellabeat-marketing-strategy.Fitabase_data.sleepDay_date` AS sleep_day
+
+INNER JOIN 
+    `bellabeat-marketing-strategy.Fitabase_data.concise_heartrate` AS concise_heartrate
+    ON concise_heartrate.id = sleep_day.id
+    AND concise_heartrate.date = sleep_day.date
+WHERE(totalminutesasleep>420 AND totalminutesasleep<540)
+ORDER BY 1, 2);
+
+
+
+
+
+
+--#HEART_GOODSLEEP
+CREATE TABLE `bellabeat-marketing-strategy.Fitabase_data.heart_badsleep` AS (
+SELECT 
+    sleep_day.id,
+    sleep_day.date,
+    value,
+    * EXCEPT(id, date, value)
+FROM `bellabeat-marketing-strategy.Fitabase_data.sleepDay_date` AS sleep_day
+
+INNER JOIN 
+    `bellabeat-marketing-strategy.Fitabase_data.concise_heartrate` AS concise_heartrate
+    ON concise_heartrate.id = sleep_day.id
+    AND concise_heartrate.date = sleep_day.date
+WHERE(totalminutesasleep<420 OR totalminutesasleep>540)
+ORDER BY 1, 2);
+
+
+
+
+
+--# se voglio avere i nomi della settimana
+CREATE TABLE `bellabeat-marketing-strategy.Fitabase_data.weekday` AS (
+SELECT 
+    id,
+    date,
+    FORMAT_DATE('%a', date) AS weekday_name_abbreviated,
+    FORMAT_DATE('%A', date) AS weekday_name_full,
+    * EXCEPT (id, date)
+FROM `bellabeat-marketing-strategy.Fitabase_data.daily_activity`)
