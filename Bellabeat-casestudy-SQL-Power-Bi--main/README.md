@@ -1,6 +1,9 @@
 # Bellabeat-casestudy-SQL-Power-Bi-
 Bellabeat's casestudy (SQL(Bigquery) + PowerBi).
 
+Since the project is based on the free version of Google Cloud BigQuery the datasets have a life expctancy of only 2 months and as such, the PowerBi files may be damaged.
+If the the following occurs, there is also a .pdf file containing a copy of the dashboard altough it is not interactive.
+
 Summary:
 
 the goal of the project is to analyze the datasets provided by the company Bellabeat, choosing one or more of the products of the company and to define an effective
